@@ -1,0 +1,86 @@
+import streamlit as st
+import pandas as pd
+import plotly.express as px
+import plotly.graph_objects as go
+import numpy as np
+
+# Set page configuration
+st.set_page_config(page_title="Student Grades Visualization", layout="wide")
+
+# Data
+data = {
+    'name': ['lee', 'park', 'kim'],
+    'grade': [2, 2, 2],
+    'number': [1, 2, 3],
+    'kor': [90, 88, 99],
+    'eng': [91, 89, 99],
+    'math': [81, 77, 99],
+    'info': [100, 100, 100]
+}
+
+# Create DataFrame
+df = pd.DataFrame(data)
+
+# Title
+st.title("Student Grades Visualization")
+
+# Sidebar for student selection
+st.sidebar.header("Select Students")
+selected_students = st.sidebar.multiselect(
+    "Choose students to display",
+    options=df['name'].tolist(),
+    default=df['name'].tolist()
+)
+
+# Filter DataFrame based on selection
+filtered_df = df[df['name'].isin(selected_students)]
+
+# Bar Chart for Subject Scores
+st.subheader("Subject Scores by Student")
+fig_bar = px.bar(
+    filtered_df,
+    x='name',
+    y=['kor', 'eng', 'math', 'info'],
+    barmode='group',
+    title="Individual Subject Scores",
+    labels={'value': 'Score', 'name': 'Student', 'variable': 'Subject'}
+)
+fig_bar.update_layout(
+    yaxis_title="Score",
+    xaxis_title="Student",
+    legend_title="Subject",
+    yaxis_range=[0, 100]
+)
+st.plotly_chart(fig_bar, use_container_width=True)
+
+# Radar Chart for Student Comparison
+st.subheader("Student Performance Comparison (Radar Chart)")
+subjects = ['kor', 'eng', 'math', 'info']
+fig_radar = go.Figure()
+
+for student in filtered_df['name']:
+    student_data = filtered_df[filtered_df['name'] == student]
+    fig_radar.add_trace(go.Scatterpolar(
+        r=student_data[subjects].values.flatten(),
+        theta=[s.upper() for s in subjects],
+        fill='toself',
+        name=student.capitalize()
+    ))
+
+fig_radar.update_layout(
+    polar=dict(
+        radialaxis=dict(visible=True, range=[0, 100])
+    ),
+    showlegend=True,
+    title="Student Performance Across Subjects"
+)
+st.plotly_chart(fig_radar, use_container_width=True)
+
+# Display Raw Data
+st.subheader("Raw Data")
+st.dataframe(filtered_df.style.format({
+    'kor': '{:.0f}',
+    'eng': '{:.0f}',
+    'math': '{:.0f}',
+    'info': '{:.0f}'
+}))
