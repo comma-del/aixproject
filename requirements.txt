@@ -1,2 +1,2 @@
-maplotlib
+matplotlib
 plotly-express
